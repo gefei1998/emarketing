@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IOrderDao">
+
+    <insert id="addOrder" parameterType="com.xjt.entity.order.AddOrderRequest" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO `order` ( order_num, user_id, order_time, order_money, integral, active_id, preferential_amount )
+        VALUES
+            ( #{orderNum}, ${userId}, CURRENT_TIMESTAMP, ${money}, ${integral}, ${activeId}, ${preferentialAmount} )
+    </insert>
+
+    <insert id="deleteOrder" parameterType="com.xjt.entity.order.AddOrderRequest">
+        DELETE FROM `order` WHERE order_id = ${orderId}
+    </insert>
+
+    <insert id="deleteOrderItem" parameterType="com.xjt.entity.order.AddOrderRequest">
+        DELETE FROM order_item WHERE order_id = ${orderId}
+    </insert>
+
+    <insert id="addOrderItem" parameterType="com.xjt.entity.order.AddOrderGood">
+        <foreach collection="input" item="item" separator=";" >
+            INSERT INTO order_item ( order_id, good_id, good_num)
+            VALUES
+            ( ${orderId},${item.goodId},${item.goodNum})
+        </foreach>
+    </insert>
+
+    <update id="addGoodNum" parameterType="com.xjt.entity.order.AddOrderGood">
+        <foreach collection="input" item="item" separator=";" >
+            UPDATE good SET sale_num=sale_num+${item.goodNum} WHERE good_id = ${item.goodId}
+        </foreach>
+
+    </update>
+
+    <update id="addIntegral" parameterType="com.xjt.entity.order.AddOrderRequest">
+        UPDATE `user` SET integral=integral+${integral} WHERE user_id = ${userId}
+    </update>
+
+    <select id="searchOrder" parameterType="com.xjt.entity.order.SearchOrderRequest" resultType="com.xjt.entity.order.SearchOrderResponse">
+        SELECT
+        a.orderId,
+        a.orderNum,
+        b.user_name AS userName,
+        a.orderTime,
+        a.money,
+        a.integral,
+        c.active_name AS activeName,
+        a.preferentialAmount,
+        b.address AS address,
+        b.telephone AS telephone,
+        b.real_name AS realName
+        FROM
+        (
+        SELECT
+        order_id AS orderId,
+        order_num AS orderNum,
+        user_id AS userId,
+        order_time AS orderTime,
+        order_money AS money,
+        integral,
+        active_id AS activeId,
+        preferential_amount AS preferentialAmount
+        FROM
+        `order`
+        ) a
+        LEFT JOIN `user` b ON a.userId = b.user_id
+        LEFT JOIN active c ON a.activeId = c.active_id
+        WHERE 1=1
+        <if test="orderNum != null and orderNum!=''" >
+            AND a.orderNum=#{orderNum}
+        </if>
+        <if test="userId != null" >
+            AND a.userId=${userId}
+        </if>
+        <if test="userName != null and userName!=''" >
+            AND b.user_name LIKE CONCAT('%',#{userName},'%')
+        </if>
+        <if test="startTime != null and startTime!=''" >
+            AND a.orderTime &gt; #{startTime}
+        </if>
+        <if test="endTime != null and startTime!=''" >
+            AND a.orderTime &lt; #{endTime}
+        </if>
+        <if test="pageNum != null and pageStart!= null" >
+            limit ${pageStart},${pageNum}
+        </if>
+    </select>
+
+    <select id="searchOrderItem" parameterType="java.lang.Integer" resultType="com.xjt.entity.order.SearchOrderGood">
+        SELECT
+            a.goodNum,
+            b.good_name AS goodName,
+            b.good_path AS goodPath,
+            b.good_price AS goodPrice,
+            b.type AS goodType,
+            b.good_description AS goodDescription,
+            b.good_id AS goodId
+        FROM
+            ( SELECT good_id, good_num AS goodNum FROM order_item WHERE order_id = ${orderId} ) a
+            LEFT JOIN good b ON a.good_id = b.good_id
+    </select>
+
+</mapper>

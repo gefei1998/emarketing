@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IShoppingDao">
+    <select id="searchNum" parameterType="com.xjt.entity.shopping.AddShoppingRequest" resultType="java.lang.Integer">
+        SELECT count(*) FROM shopping WHERE user_id = ${userId} AND good_id = ${goodId}
+    </select>
+
+    <insert id="addShopping" parameterType="com.xjt.entity.shopping.AddShoppingRequest">
+        INSERT INTO shopping (user_id,good_id,good_num,update_time) VALUES (${userId},${goodId},1,CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateShopping" parameterType="com.xjt.entity.shopping.AddShoppingRequest">
+        UPDATE shopping SET good_num=good_num+1,update_time=CURRENT_TIMESTAMP WHERE user_id = ${userId} AND good_id = ${goodId}
+    </update>
+
+    <update id="update" parameterType="com.xjt.entity.shopping.AddShoppingRequest">
+        UPDATE shopping SET good_num= ${goodNum},update_time=CURRENT_TIMESTAMP WHERE user_id = ${userId} AND good_id = ${goodId}
+    </update>
+
+    <delete id="delete" parameterType="com.xjt.entity.shopping.AddShoppingRequest">
+        delete from shopping WHERE user_id = ${userId} AND good_id = ${goodId}
+    </delete>
+
+    <select id="search" parameterType="com.xjt.entity.shopping.SearchShoppingRequest" resultType="com.xjt.entity.shopping.SearchShoppingResponse">
+        SELECT
+            b.good_id AS goodId,
+            b.good_name AS goodName,
+            b.good_price AS goodPrice,
+            b.good_path AS goodPath,
+            a.good_num AS goodNum
+        FROM
+            shopping a
+            LEFT JOIN good b ON a.good_id = b.good_id
+        WHERE
+            a.user_id =${userId} ORDER BY a.update_time desc
+            <if test="pageNum != null and pageStart!= null" >
+                limit ${pageStart},${pageNum}
+            </if>
+    </select>
+
+</mapper>

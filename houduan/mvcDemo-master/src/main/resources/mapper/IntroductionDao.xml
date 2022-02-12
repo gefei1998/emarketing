@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IIntroductionDao">
+
+    <update id="updateIntroduction" parameterType="com.xjt.entity.introdution.UpdateIntroductionRequestEntity">
+        UPDATE recommendation
+        SET
+        introduction = #{introductionContent}
+    </update>
+
+    <select id="searchIntroduction" resultType="com.xjt.entity.introdution.SearchIntroductionResponseEntity">
+        SELECT introduction AS introductionContent FROM recommendation
+    </select>
+
+
+</mapper>

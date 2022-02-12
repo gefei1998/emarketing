@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IUserDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IUserDao">
+
+    <select id="selectUser" resultType="User" parameterType="long">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+    <select id="loginUser" parameterType="com.xjt.entity.user.LoginRequestEntity" resultType="com.xjt.entity.user.LoginResponseEntity">
+        SELECT count(*) AS successFlag,user_id AS userId,user_name AS userName FROM `user` WHERE user_name=#{userName} and `password`=#{password}
+    </select>
+
+    <select id="loginAdmin" parameterType="com.xjt.entity.user.LoginRequestEntity" resultType="com.xjt.entity.user.LoginResponseEntity">
+        SELECT count(*) AS successFlag,admin_id AS userId,admin_name AS userName FROM admin WHERE admin_name=#{userName} and `password`=#{password}
+    </select>
+
+    <select id="detail" parameterType="com.xjt.entity.user.DetailRequestEntity" resultType="com.xjt.entity.user.DetailResponseEntity">
+        SELECT
+          user_id AS userId,
+          user_name AS userName,
+          `password` AS password,
+          idcard AS idcard,
+          path AS path,
+          telephone AS telephone,
+          email AS email,
+          address AS address,
+          gender AS gender,
+          age AS age,
+          real_name AS realName,
+          integral AS integral,
+          login_time AS loginTime
+        FROM
+          `user`
+        WHERE 1=1
+        <if test="userId != null" >
+            AND user_id = ${userId}
+        </if>
+        <if test="userName != null and userName!=''" >
+            AND user_name LIKE CONCAT('%',#{userName},'%')
+        </if>
+        <if test="pageNum != null and pageStart!= null" >
+            limit ${pageStart},${pageNum}
+        </if>
+    </select>
+
+    <insert id="register" parameterType="com.xjt.entity.user.RegisterRequestEntity">
+        INSERT INTO `user` ( user_name, idcard, path, `password`, telephone, email, address, gender, age, real_name,integral,login_time )
+        VALUES
+	    ( #{userName}, #{idcard}, #{path}, #{password}, #{telephone},  #{email},  #{address}, ${gender}, ${age}, #{realName},0, CURRENT_TIMESTAMP )
+    </insert>
+
+    <update id="update" parameterType="com.xjt.entity.user.UpdateRequestEntity">
+        UPDATE `user`
+        SET
+            update_time = CURRENT_DATE
+            ,user_name = #{userName}
+            ,idcard = #{idcard}
+            ,path = #{path}
+            ,`password` = #{password}
+            ,telephone = #{telephone}
+            ,email = #{email}
+            ,address = #{address}
+            ,gender = ${gender}
+            ,age = ${age}
+            ,real_name = #{realName}
+        WHERE
+	        user_id =#{userId}
+    </update>
+
+    <update id="updateLogin" parameterType="com.xjt.entity.user.LoginRequestEntity" >
+        UPDATE `user`
+        SET
+        login_time = CURRENT_TIMESTAMP
+        WHERE user_name=#{userName} and `password`=#{password}
+    </update>
+
+    <delete id="delete" parameterType="com.xjt.entity.user.DeleteRequestEntity">
+        DELETE FROM `user` WHERE user_id in
+        <foreach collection="userIds" open="(" close=")" separator="," item="item">
+            ${item}
+        </foreach>
+    </delete>
+
+</mapper>

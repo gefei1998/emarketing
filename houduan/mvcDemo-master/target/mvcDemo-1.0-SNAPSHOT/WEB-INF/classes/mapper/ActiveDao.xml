@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IActiveDao">
+
+    <insert id="addActive" parameterType="com.xjt.entity.active.AddActiveEntity">
+        INSERT INTO active (active_name,active_content,full_price,minus_price,active_path,delete_flag,update_time)
+        VALUES(#{activeName},#{activeContent},#{fullPrice},#{minusPrice},#{activePath},0,CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateActive" parameterType="com.xjt.entity.active.AddActiveEntity">
+        UPDATE active SET
+        active_name=#{activeName},
+        active_content=#{activeContent},
+        full_price=#{fullPrice},
+        minus_price=#{minusPrice},
+        active_path=#{activePath},
+        delete_flag=${deleteFlag},
+        update_time=CURRENT_TIMESTAMP
+        WHERE active_id=${activeId}
+    </update>
+
+    <select id="searchActive" parameterType="com.xjt.entity.active.SearchActiveRequestEntity" resultType="com.xjt.entity.active.SearchActiveResponseEntity">
+        SELECT
+        active_id AS activeId,
+        active_name AS activeName,
+        active_content AS activeContent,
+        full_price AS fullPrice,
+        minus_price AS minusPrice,
+        active_path AS activePath,
+        delete_flag AS deleteFlag,
+        update_time AS updateTime
+        FROM active
+        WHERE 1=1
+        <if test="deleteFlag != null" >
+            AND delete_flag = ${deleteFlag}
+        </if>
+        <if test="activeId != null" >
+            AND active_id = ${activeId}
+        </if>
+        <if test="activeName != null and activeName!=''" >
+            AND active_name LIKE CONCAT('%',#{activeName},'%')
+        </if>
+        ORDER BY update_time desc
+    </select>
+
+</mapper>

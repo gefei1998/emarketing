@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IDictionaryDao">
+
+    <select id="searchDictionary" resultType="com.xjt.entity.dictionary.SearchDictionaryResponseEntity">
+        SELECT
+        dictionary_value AS dictionaryValue,
+        dictionary_name AS dictionaryName,
+        dictionary_desc AS dictionaryDesc
+        FROM dictionary
+    </select>
+
+    <update id="updateDictionary" parameterType="com.xjt.entity.dictionary.SearchDictionaryRequestEntity" >
+        UPDATE dictionary SET
+        dictionary_value = ${dictionaryValue}
+        WHERE dictionary_name=#{dictionaryName}
+    </update>
+
+</mapper>

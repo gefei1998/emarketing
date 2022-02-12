@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IReviewsDao">
+
+    <insert id="addReviews" parameterType="com.xjt.entity.reviews.AddReviewsRequest">
+        INSERT INTO reviews ( reviews_content, user_id, create_time,reply)
+        VALUES
+            ( #{reviewsContent}, ${userId}, CURRENT_TIMESTAMP,"" )
+    </insert>
+
+    <update id="addReviewReply" parameterType="com.xjt.entity.reviews.AddReviewReplyRequest">
+        UPDATE reviews SET reply=#{reply},reply_time=CURRENT_TIMESTAMP WHERE reviews_id=${reviewId}
+    </update>
+
+    <update id="deleteReviewReply" parameterType="com.xjt.entity.reviews.AddReviewReplyRequest">
+        UPDATE reviews SET reply="",reply_time=CURRENT_TIMESTAMP WHERE reviews_id=${reviewId}
+    </update>
+
+    <select id="searchReviews" parameterType="com.xjt.entity.reviews.SearchReviewsRequest" resultType="com.xjt.entity.reviews.SearchReviewsResponse">
+        SELECT
+            a.reviews_id AS reviewsId,
+            a.reviews_content AS reviewsComment,
+            a.create_time AS createTime,
+            a.user_id AS userId,
+            b.user_name AS userName,
+            b.path AS userPath,
+            a.reply AS reply,
+            a.reply_time AS replyTime
+        FROM
+            reviews a
+            LEFT JOIN `user` b ON a.user_id = b.user_id
+            WHERE 1=1
+            <if test="userId != null and searchFlag!=null and searchFlag!=1" >
+                AND a.user_id = ${userId}
+            </if>
+            <if test="userName != null and userName!=''" >
+                AND b.user_name LIKE CONCAT('%',#{userName},'%')
+            </if>
+            ORDER BY a.create_time desc
+            <if test="pageNum != null and pageStart!= null" >
+                limit ${pageStart},${pageNum}
+            </if>
+    </select>
+
+    <select id="judgeFlag" resultType="com.xjt.entity.goods.JudgeFlag">
+        SELECT count(*) AS commentNum FROM reviews WHERE reviews_id=${reviewsId} and user_id=${userId}
+    </select>
+
+</mapper>

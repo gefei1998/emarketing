@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设置为IGoodsDao接口方法提供sql语句配置 -->
+<mapper namespace="com.xjt.dao.IGoodsDao">
+
+    <insert id="add" parameterType="com.xjt.entity.goods.AddRequestEntity">
+        INSERT INTO good (good_name,good_path,good_price,good_description,type,sale_num,delete_flag,update_time)
+        VALUES(#{goodName},#{goodPath},${goodPrice},#{goodDescription},${goodType},0,0,CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="update" parameterType="com.xjt.entity.goods.UpdateGoodsRequestEntity">
+        UPDATE good
+        SET
+        update_time = CURRENT_TIMESTAMP
+        <if test="goodName != null and goodName!=''" >
+            ,good_name = #{goodName}
+        </if>
+        <if test="goodPath != null and goodPath!=''" >
+            ,good_path = #{goodPath}
+        </if>
+        <if test="goodPrice != null" >
+            ,good_price = ${goodPrice}
+        </if>
+        <if test="goodType != null and goodType!=''" >
+            ,`type` = ${goodType}
+        </if>
+        <if test="deleteFlag != null" >
+            ,delete_flag = ${deleteFlag}
+        </if>
+        <if test="goodDescription != null and goodDescription!=''" >
+            ,good_description = #{goodDescription}
+        </if>
+        WHERE
+        good_id=${goodId}
+    </update>
+
+    <select id="search" parameterType="com.xjt.entity.goods.SearchGoodsRequestEntity" resultType="com.xjt.entity.goods.SearchGoodsResponseEntity">
+        SELECT
+        good_Id AS goodId,
+        good_name AS goodName,
+        good_path AS goodPath,
+        good_price AS goodPrice,
+        sale_num AS saleNum,
+        `type` AS goodType,
+        good_description AS goodDescription,
+        delete_flag AS deleteFlag,
+        update_time AS updateTime
+        FROM
+        good
+        WHERE 1=1
+        <if test="deleteFlag != null" >
+            AND delete_flag = ${deleteFlag}
+        </if>
+        <if test="goodId != null" >
+            AND good_id = ${goodId}
+        </if>
+        <if test="goodName != null and goodName!=''" >
+            AND good_name LIKE CONCAT('%',#{goodName},'%')
+        </if>
+        <if test="smallPrice != null and smallPrice!=''" >
+            AND good_price &gt;= #{smallPrice}
+        </if>
+        <if test="bigPrice != null and bigPrice!=''" >
+            AND good_price &lt;= #{bigPrice}
+        </if>
+        <if test="goodType != null " >
+            AND `type` IN
+            <foreach collection="goodType" open="(" close=")" separator="," item="item">
+                ${item}
+            </foreach>
+        </if>
+        ORDER BY update_time desc
+        <if test="pageNum != null and pageStart!= null" >
+            limit ${pageStart},${pageNum}
+        </if>
+    </select>
+
+    <select id="getComment" parameterType="java.lang.Integer" resultType="com.xjt.entity.goods.Comment">
+        SELECT
+            a.commendId,
+            a.COMMENT,
+            b.user_name AS userName,
+			b.path AS userPath,
+            a.commendTime,
+            a.reply,
+            a.replyTime,
+            a.orderNum
+        FROM
+            ( SELECT commend_id AS commendId, COMMENT, user_id, commend_time AS commendTime,reply,reply_time AS replyTime,order_num AS orderNum FROM commend WHERE good_id = ${_parameter} ) a
+            LEFT JOIN `user` b ON a.user_id = b.user_id
+        WHERE
+            a.user_id = b.user_id ORDER BY a.commendTime DESC
+    </select>
+
+    <select id="judgeFlag" resultType="com.xjt.entity.goods.JudgeFlag">
+        SELECT count(*) AS commentNum FROM commend WHERE commend_id=${commendId} and user_id=${userId}
+    </select>
+
+    <update id="addCommendReply" parameterType="com.xjt.entity.goods.AddCommendReplyRequest">
+        UPDATE commend SET reply=#{reply},reply_time=CURRENT_TIMESTAMP WHERE commend_id=${commendId}
+    </update>
+
+    <update id="deleteCommendReply" parameterType="com.xjt.entity.goods.AddCommendReplyRequest">
+        UPDATE commend SET reply="",reply_time=CURRENT_TIMESTAMP WHERE commend_id=${commendId}
+    </update>
+
+    <insert id="addCommend" parameterType="com.xjt.entity.goods.AddCommendRequest">
+        INSERT INTO commend ( good_id,comment, user_id, commend_time,reply,order_num)
+        VALUES
+            ( ${goodId},#{comment}, ${userId}, CURRENT_TIMESTAMP,"",#{orderNum} )
+    </insert>
+</mapper>
